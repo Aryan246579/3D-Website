@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced 3D Animated Website</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+    <script>
+        // Set up the scene, camera, and renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Add lighting
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+
+        // Create a room
+        const roomGeometry = new THREE.BoxGeometry(10, 8, 10);
+        const roomMaterial = new THREE.MeshPhongMaterial({color: 0xcccccc, side: THREE.BackSide});
+        const room = new THREE.Mesh(roomGeometry, roomMaterial);
+        scene.add(room);
+
+        // Create a window
+        const windowGeometry = new THREE.PlaneGeometry(3, 2);
+        const windowMaterial = new THREE.MeshPhongMaterial({color: 0x87ceeb, transparent: true, opacity: 0.7});
+        const windowMesh = new THREE.Mesh(windowGeometry, windowMaterial);
+        windowMesh.position.set(0, 1, 4.99);
+        scene.add(windowMesh);
+
+        // Create birds
+        const birdGeometry = new THREE.ConeGeometry(0.1, 0.3, 4);
+        const birdMaterial = new THREE.MeshPhongMaterial({color: 0x000000});
+        const birds = [];
+        for (let i = 0; i < 10; i++) {
+            const bird = new THREE.Mesh(birdGeometry, birdMaterial);
+            bird.position.set(
+                Math.random() * 8 - 4,
+                Math.random() * 3 + 2,
+                Math.random() * 2 + 3
+            );
+            bird.rotation.x = Math.PI / 2;
+            birds.push(bird);
+            scene.add(bird);
+        }
+
+        // Create a simple human figure
+        const humanGroup = new THREE.Group();
+        const bodyGeometry = new THREE.CylinderGeometry(0.2, 0.2, 1, 8);
+        const bodyMaterial = new THREE.MeshPhongMaterial({color: 0x0000ff});
+        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        humanGroup.add(body);
+
+        const headGeometry = new THREE.SphereGeometry(0.2, 16, 16);
+        const headMaterial = new THREE.MeshPhongMaterial({color: 0xffcc99});
+        const head = new THREE.Mesh(headGeometry, headMaterial);
+        head.position.y = 0.7;
+        humanGroup.add(head);
+
+        humanGroup.position.set(-2, -3, 0);
+        scene.add(humanGroup);
+
+        camera.position.z = 8;
+
+        // Animation function
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Animate birds
+            birds.forEach((bird, index) => {
+                bird.position.x += Math.sin(Date.now() * 0.001 + index) * 0.02;
+                bird.position.y += Math.cos(Date.now() * 0.001 + index) * 0.01;
+            });
+
+            // Animate human
+            humanGroup.rotation.y += 0.01;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resizing
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Add GUI controls
+        const gui = new dat.GUI();
+        const cameraFolder = gui.addFolder('Camera');
+        cameraFolder.add(camera.position, 'z', 1, 20);
+        cameraFolder.open();
+
+        const lightingFolder = gui.addFolder('Lighting');
+        lightingFolder.add(ambientLight, 'intensity', 0, 1);
+        lightingFolder.add(directionalLight, 'intensity', 0, 1);
+        lightingFolder.open();
+    </script>
+</body>
+</html>
